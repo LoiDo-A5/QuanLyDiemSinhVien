@@ -1,118 +1,76 @@
 #include "Student.h"
-#include "IsValid.h"
-#include <sstream>
 
-// Constructor mặc định
-SinhVien::SinhVien() : MASV(""), HO(""), TEN(""), GIOITINH(""), CMND(""), DIEM(0.0) {}
+// Constructor
+SinhVien::SinhVien(const string &masv, const string &ho, const string &ten, 
+                   const string &gioitinh, const string &cmnd, const string &sodt)
+    : MASV(masv), HO(ho), TEN(ten), GIOITINH(gioitinh), CMND(cmnd), SODT(sodt), dsdangky(nullptr) {}
 
-SinhVien::SinhVien(const string &masv, const string &ho, const string &ten, const string &gioiTinh, const string &cmnd)
-    : MASV(masv), HO(ho), TEN(ten), GIOITINH(gioiTinh), CMND(cmnd), DIEM(0.0)
-{
+// Getter methods
+string SinhVien::getMASV() const { return MASV; }
+string SinhVien::getHO() const { return HO; }
+string SinhVien::getTEN() const { return TEN; }
+string SinhVien::getGIOITINH() const { return GIOITINH; }
+string SinhVien::getCMND() const { return CMND; }
+string SinhVien::getSODT() const { return SODT; }
+
+// Setter methods
+void SinhVien::setMASV(const string &masv) { MASV = masv; }
+void SinhVien::setHO(const string &ho) { HO = ho; }
+void SinhVien::setTEN(const string &ten) { TEN = ten; }
+void SinhVien::setGIOITINH(const string &gioitinh) { GIOITINH = gioitinh; }
+void SinhVien::setCMND(const string &cmnd) { CMND = cmnd; }
+void SinhVien::setSODT(const string &sodt) { SODT = sodt; }
+
+// Method to update grades
+void SinhVien::capNhatDiem(const string &maMH, float diemMoi) {
+    DIEM[maMH] = diemMoi;
 }
 
-// Hàm nhập thông tin sinh viên
-void SinhVien::nhapThongTin()
-{
-    cout << "Nhập mã sinh viên: ";
-    cin >> MASV;
-    isValidCode(MASV);
-
-    cin.ignore(); // Để xóa ký tự xuống dòng từ mục nhập trước đó
-
-    cout << "Nhập họ: ";
-    isValidString(HO);
-
-    cout << "Nhập tên: ";
-    isValidString(TEN);
-
-    cout << "Nhập giới tính: ";
-    isValidString(GIOITINH);
-
-    cout << "Nhập số CMND: ";
-    cin >> CMND;
-    isValidCMND(CMND);
+// Method to get grades for a subject
+float SinhVien::getDiem(const string &maMH) const {
+    auto it = DIEM.find(maMH);
+    if (it != DIEM.end()) {
+        return it->second;
+    }
+    return -1.0f; // If not found, return -1.0 as invalid grade
 }
 
-// Hàm in thông tin sinh viên
-void SinhVien::inThongTin() const
-{
-    cout << "Mã sinh viên: " << MASV << ", Họ: " << HO << ", Tên: " << TEN
-         << ", Giới tính: " << GIOITINH << ", CMND: " << CMND << ", Điểm: " << DIEM << endl;
-}
-
-// Hàm lấy mã sinh viên
-string SinhVien::getMaSV() const
-{
-    return MASV;
-}
-
-// Hàm lấy tên sinh viên (họ và tên)
-string SinhVien::getName() const
-{
-    return HO + " " + TEN; // Trả về họ và tên
-}
-
-// Hàm lấy họ
-string SinhVien::getHo() const
-{
-    return HO;
-}
-
-// Hàm lấy tên
-string SinhVien::getTen() const
-{
-    return TEN;
-}
-
-// Hàm lấy điểm của sinh viên
-float SinhVien::getDiem() const
-{
-    return DIEM; // Trả về điểm của sinh viên
-}
-
-// Hàm cập nhật điểm sinh viên
-void SinhVien::capNhatDiem(float diemMoi)
-{
-    DIEM = diemMoi;
-}
-
-// Hàm lấy giới tính
-string SinhVien::getGioiTinh() const
-{
-    return GIOITINH; // Trả về giới tính
-}
-
-// Hàm lấy CMND
-string SinhVien::getCMND() const
-{
-    return CMND; // Trả về CMND
-}
-
-// Hàm chuyển thông tin sinh viên thành chuỗi
-string SinhVien::toString() const
-{
-    return MASV + " " + HO + " " + TEN + " " + GIOITINH + " " + CMND + " " + to_string(DIEM);
-}
-
-void SinhVien::fromString(const std::string &data)
-{
-    std::istringstream stream(data);
-
-    // Trích xuất từng trường dữ liệu từ chuỗi
-    stream >> MASV >> HO >> TEN >> GIOITINH >> CMND >> DIEM;
-
-    if (stream.fail()) // Kiểm tra lỗi khi trích xuất
-    {
-        throw std::runtime_error("Invalid data format for SinhVien");
+// Method to display grades
+void SinhVien::inDiem() const {
+    for (const auto &entry : DIEM) {
+        cout << "Môn học: " << entry.first << " - Điểm: " << entry.second << endl;
     }
 }
 
-void SinhVien::setDiem(float diemMoi)
-{
-    DIEM = diemMoi; // Cập nhật điểm mới
+// Method to add a registration (DangKy)
+void SinhVien::themDangKy(float diem, bool huy) {
+    DangKy* newDangKy = new DangKy(MASV, diem, huy);
+    newDangKy->next = dsdangky;  // Add to the front of the linked list
+    dsdangky = newDangKy;
 }
 
-int SinhVien::getSoTinChi() const
-{
-    return monHoc.STCLT + monHoc.STCTH; // Tổng số tín chỉ (lý thuyết + thực hành)
+// Method to display the registration list
+void SinhVien::inDanhSachDangKy() const {
+    DangKy* temp = dsdangky;
+    while (temp != nullptr) {
+        cout << "Mã SV: " << temp->MASV << ", Điểm: " << temp->DIEM 
+             << ", Hủy đăng ký: " << (temp->huyDangKy ? "Có" : "Không") << endl;
+        temp = temp->next;
+    }
+}
+
+// Destructor to clean up the DangKy linked list
+SinhVien::~SinhVien() {
+    while (dsdangky != nullptr) {
+        DangKy* temp = dsdangky;
+        dsdangky = dsdangky->next;
+        delete temp;  // Delete each DangKy node
+    }
+}
+
+// Method to display student info
+void SinhVien::inThongTin() const {
+    cout << "Mã sinh viên: " << MASV << ", Họ tên: " << HO << " " << TEN 
+         << ", Giới tính: " << GIOITINH << ", CMND: " << CMND 
+         << ", Số điện thoại: " << SODT << endl;
 }

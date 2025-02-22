@@ -6,10 +6,10 @@ using namespace std;
 
 struct MonHoc
 {
-    string MAMH;
-    string TENMH;
-    int STCLT; // Số tín chỉ lý thuyết
-    int STCTH; // Số tín chỉ thực hành
+    string MAMH;   // Mã môn học
+    string TENMH;  // Tên môn học
+    int STCLT;     // Số tín chỉ lý thuyết
+    int STCTH;     // Số tín chỉ thực hành
 
     MonHoc() : MAMH(""), TENMH(""), STCLT(0), STCTH(0) {}
 
@@ -17,4 +17,4 @@ struct MonHoc
         : MAMH(maMH), TENMH(tenMH), STCLT(stclt), STCTH(stcth) {}
 };
 
-#endif
+#endif // COURSE_H

@@ -1,4 +1,3 @@
-// ClassList.cpp
 #include "ClassList.h"
 #include "Node.h"
 #include <iostream>
@@ -17,7 +16,8 @@ void ClassList::addClass(const Lop &newClass)
 {
     if (classCount < 1000)
     {
-        classes[classCount++] = new Lop(newClass);
+        // Thêm lớp vào danh sách
+        classes[classCount++] = newClass; // Không cần new vì đối tượng đã có sẵn trong tham số
     }
     else
     {
@@ -29,7 +29,7 @@ void ClassList::printClasses()
 {
     for (int i = 0; i < classCount; i++)
     {
-        classes[i]->printClassInfo();
+        classes[i].printClassInfo(); // Không cần dùng con trỏ vì lớp đã được tạo sẵn
     }
 }
 
@@ -37,13 +37,18 @@ void ClassList::updateClass(const string &malop, Lop updatedClass)
 {
     for (int i = 0; i < classCount; i++)
     {
-        if (classes[i]->getClassID() == malop)
+        if (classes[i].getClassID() == malop)
         {
-            for (int j = 0; j < classes[i]->getStudents().size(); j++)
+            // Giữ lại sinh viên của lớp cũ bằng cách duyệt qua danh sách sinh viên
+            const SinhVienNode *current = classes[i].getStudents(); // Lấy danh sách sinh viên của lớp hiện tại
+            while (current != nullptr)
             {
-                updatedClass.addStudent(classes[i]->getStudents()[j]);
+                updatedClass.addStudent(current->student); // Thêm sinh viên vào lớp mới
+                current = current->next;                   // Di chuyển đến sinh viên tiếp theo
             }
-            *classes[i] = updatedClass;
+
+            // Cập nhật lớp mới vào danh sách lớp
+            classes[i] = updatedClass;
             cout << "Cập nhật lớp " << malop << " thành công!" << endl;
             return;
         }
@@ -55,10 +60,10 @@ void ClassList::addStudentToClass(const string &malop, const SinhVien &newStuden
 {
     for (int i = 0; i < classCount; i++)
     {
-        if (classes[i]->getClassID() == malop)
+        if (classes[i].getClassID() == malop)
         {
-            classes[i]->addStudent(newStudent);
-            cout << "Thêm sinh viên " << newStudent.getMaSV() << " vào lớp " << malop << " thành công!" << endl;
+            classes[i].addStudent(newStudent); // Thêm sinh viên vào lớp
+            cout << "Thêm sinh viên " << newStudent.getMASV() << " vào lớp " << malop << " thành công!" << endl;
             return;
         }
     }
@@ -69,18 +74,17 @@ Lop *ClassList::findClassByCode(const string &malop)
 {
     for (int i = 0; i < classCount; i++)
     {
-        if (classes[i]->getClassID() == malop) // So sánh mã lớp
+        if (classes[i].getClassID() == malop)
         {
-            return classes[i]; // Trả về con trỏ đến lớp tìm được
+            return &classes[i]; // Trả về con trỏ đến lớp tìm được
         }
     }
-    return nullptr; // Không tìm thấy lớp, trả về nullptr
+    return nullptr; // Không tìm thấy lớp
 }
 
 bool ClassList::removeStudent(const string &malop, const string &maSV)
 {
-    // Tìm lớp theo mã lớp
-    Lop *lop = findClassByCode(malop);
+    Lop *lop = findClassByCode(malop); // Tìm lớp
 
     if (lop == nullptr)
     {
@@ -88,8 +92,7 @@ bool ClassList::removeStudent(const string &malop, const string &maSV)
         return false;
     }
 
-    // Xóa sinh viên trong lớp
-    bool removed = lop->removeStudent(maSV);
+    bool removed = lop->removeStudent(maSV); // Xóa sinh viên trong lớp
 
     if (removed)
     {
@@ -103,99 +106,98 @@ bool ClassList::removeStudent(const string &malop, const string &maSV)
     }
 }
 
-bool ClassList::removeClassByCode(const std::string &malop)
+bool ClassList::removeClassByCode(const string &malop)
 {
     for (int i = 0; i < classCount; ++i)
     {
-        if (classes[i] && classes[i]->getCode() == malop)
+        if (classes[i].getClassID() == malop)
         {
-            delete classes[i]; // Giải phóng bộ nhớ cho đối tượng lớp
+            // Xóa lớp bằng mã lớp
             for (int j = i; j < classCount - 1; ++j)
             {
-                classes[j] = classes[j + 1]; // Chuyển các lớp còn lại
+                classes[j] = classes[j + 1]; // Dịch chuyển lớp còn lại
             }
-            classes[classCount - 1] = nullptr; // Xóa con trỏ cuối cùng
-            --classCount;                      // Giảm số lượng lớp
-            return true;                       // Cho biết thành công
+            --classCount; // Giảm số lượng lớp
+            return true;  // Thành công
         }
     }
-    return false; // Trả về false nếu không tìm thấy lớp
+    return false; // Không tìm thấy lớp
 }
 
-SinhVien *ClassList::findSinhVienById(const std::string &maSV)
+SinhVien *ClassList::findSinhVienById(const string &maSV)
 {
     for (int i = 0; i < classCount; ++i)
     {
-        SinhVien *found = classes[i]->findStudent(maSV);
+        SinhVien *found = classes[i].findStudent(maSV); // Tìm sinh viên trong lớp
         if (found != nullptr)
         {
             return found;
         }
     }
-    return nullptr; // Return nullptr if not found in any class
+    return nullptr; // Không tìm thấy sinh viên
 }
 
-void ClassList::saveToFile(const std::string &filename)
+void ClassList::saveToFile(const string &filename)
 {
-    std::ofstream outFile(filename); // Open file to save data
+    ofstream outFile(filename); // Mở file để lưu dữ liệu
 
     if (!outFile)
     {
-        std::cerr << "Không thể mở file để lưu!" << std::endl;
+        cerr << "Không thể mở file để lưu!" << endl;
         return;
     }
 
     // Lưu danh sách lớp
     for (int i = 0; i < classCount; ++i)
     {
-        const Lop &classItem = *classes[i];
-        outFile << classItem.getClassID() << " " << classItem.getClassName() << std::endl;
+        outFile << classes[i].getClassID() << " " << classes[i].getClassName() << endl;
 
-        // Lưu thông tin sinh viên trong lớp (nếu có)
-        const auto &students = classItem.getStudents();
-        for (const auto &student : students)
+        // Lưu sinh viên trong lớp bằng cách duyệt qua danh sách liên kết
+        const SinhVienNode *current = classes[i].getStudents(); // Sử dụng const vì danh sách là không thay đổi
+        while (current != nullptr)
         {
-            // Sử dụng phương thức toString() để lưu tất cả thông tin sinh viên
-            outFile << student.toString() << std::endl;
+            outFile << current->student.toString() << endl; // Gọi phương thức toString() của sinh viên
+            current = current->next;                        // Di chuyển đến sinh viên tiếp theo
         }
 
-        outFile << std::endl; // Đánh dấu kết thúc thông tin lớp
+        outFile << endl; // Đánh dấu kết thúc lớp
     }
 
-    outFile.close();
+    outFile.close(); // Đóng file
 }
 
-void ClassList::readFromFile(const std::string &filename)
+void ClassList::readFromFile(const string &filename)
 {
-    std::ifstream inFile(filename); // Open file to read data
+    ifstream inFile(filename); // Mở file để đọc
 
     if (!inFile)
-        return;
-
-    classCount = 0;
-
-    std::string line;
-    while (std::getline(inFile, line))
     {
-        // Read class ID and name
-        std::istringstream classStream(line);
-        std::string classID, className;
-        classStream >> classID >> std::ws;
-        std::getline(classStream, className);
-
-        Lop *classItem = new Lop(classID, className);
-
-        // Read students for this class
-        while (std::getline(inFile, line) && !line.empty())
-        {
-            SinhVien student;
-            student.fromString(line); // Assume `fromString` parses a student's details
-            classItem->addStudent(student);
-        }
-
-        // Add the class to the list
-        addClass(*classItem);
+        cerr << "Không thể mở file để đọc!" << endl;
+        return;
     }
 
-    inFile.close();
+    classCount = 0;
+    string line;
+
+    while (getline(inFile, line))
+    {
+        istringstream classStream(line);
+        string classID, className;
+        classStream >> classID >> ws; // Đọc mã lớp và tên lớp
+        getline(classStream, className);
+
+        Lop classItem(classID, className);
+
+        // Đọc sinh viên cho lớp
+        while (getline(inFile, line) && !line.empty())
+        {
+            SinhVien student;
+            student.fromString(line); // Giả sử phương thức fromString() để parse thông tin sinh viên
+            classItem.addStudent(student);
+        }
+
+        addClass(classItem); // Thêm lớp vào danh sách
+    }
+
+    inFile.close(); // Đóng file
 }

@@ -2,12 +2,12 @@
 #define CLASSLIST_H
 
 #include "Class.h"
-#include "Student.h" // Thêm thư viện Student.h nếu cần sử dụng SinhVien
+#include "Student.h"
 
 class ClassList
 {
 private:
-    Lop *classes[1000]; //  Mảng con trỏ tối đa 1000 phần tử // một danh sách tuyến tính
+    Lop classes[1000]; // Danh sách lớp (không dùng vector hay mảng con trỏ)
     int classCount;
 
 public:
